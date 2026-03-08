@@ -62,6 +62,10 @@ export async function POST(request: NextRequest) {
 
     const memoPayload = memoSegments.join(",");
 
+    // Mark settlement as in-progress so live view can show it
+    trip.settlementStatus = { phase: "processing", startedAt: new Date().toISOString() };
+    store.setTrip(trip);
+
     // Execute XRP payments with cryptographic memo
     const results = await executeSettlement(
       obligations,
@@ -69,31 +73,39 @@ export async function POST(request: NextRequest) {
       memoPayload || undefined
     );
 
+    const enrichedObligations = results.map((o) => ({
+      ...o,
+      fromName: trip.participants.find((p) => p.id === o.from)?.name,
+      toName: trip.participants.find((p) => p.id === o.to)?.name,
+      fromAddress: participantMap.get(o.from)?.address,
+      toAddress: participantMap.get(o.to)?.address,
+      explorerUrl: o.txHash ? getExplorerUrl(o.txHash) : undefined,
+      memo: memoPayload || undefined,
+      currency: "XRP",
+    }));
+
     // Update trip status
     const allConfirmed = results.every((r) => r.status === "confirmed");
+    trip.settlementStatus = {
+      phase: "complete",
+      startedAt: trip.settlementStatus.startedAt,
+      completedAt: new Date().toISOString(),
+      obligations: enrichedObligations,
+    };
     if (allConfirmed) {
       trip.status = "settled";
       trip.expenses.forEach((e) => {
         e.status = "settled";
         e.splits.forEach((s) => (s.settled = true));
       });
-      store.setTrip(trip);
     }
+    store.setTrip(trip);
 
     await disconnectClient();
 
     return NextResponse.json({
       tripId,
-      obligations: results.map((o) => ({
-        ...o,
-        fromName: trip.participants.find((p) => p.id === o.from)?.name,
-        toName: trip.participants.find((p) => p.id === o.to)?.name,
-        fromAddress: participantMap.get(o.from)?.address,
-        toAddress: participantMap.get(o.to)?.address,
-        explorerUrl: o.txHash ? getExplorerUrl(o.txHash) : undefined,
-        memo: memoPayload || undefined,
-        currency: "XRP",
-      })),
+      obligations: enrichedObligations,
       receiptProofs,
       totalTransactions: results.length,
       confirmedTransactions: results.filter((r) => r.status === "confirmed").length,

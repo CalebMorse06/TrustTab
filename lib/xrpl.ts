@@ -128,21 +128,27 @@ export async function executeSettlement(
     let txHash = "";
     let ledgerIndex: number | undefined;
 
-    try {
-      // Use XRP payments — reliable with testnet faucet
-      // Amount in XRP maps 1:1 with USD for demo purposes
-      const result = await sendXRPPayment(
-        sender.seed,
-        receiver.address,
-        obligation.rlusdAmount.toFixed(6),
-        receiptCid
-      );
+    // Retry up to 2 times on failure
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        const result = await sendXRPPayment(
+          sender.seed,
+          receiver.address,
+          obligation.rlusdAmount.toFixed(6),
+          receiptCid
+        );
 
-      txHash = result.txHash;
-      ledgerIndex = result.ledgerIndex;
-      status = result.success ? "confirmed" : "failed";
-    } catch {
-      status = "failed";
+        txHash = result.txHash;
+        ledgerIndex = result.ledgerIndex;
+        status = result.success ? "confirmed" : "failed";
+
+        if (status === "confirmed") break;
+        // Wait before retry
+        if (attempt === 0) await new Promise((r) => setTimeout(r, 1000));
+      } catch {
+        status = "failed";
+        if (attempt === 0) await new Promise((r) => setTimeout(r, 1000));
+      }
     }
 
     results.push({ ...obligation, status, txHash, ledgerIndex });

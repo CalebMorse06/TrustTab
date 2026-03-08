@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Trip Treasury",
-  description: "Split expenses, not friendships. Verifiable receipts on IPFS, settlements on XRPL.",
+  title: "TrustTab",
+  description: "Split expenses on-chain. Receipts on IPFS. Settlements on XRPL.",
 };
 
 export default function RootLayout({

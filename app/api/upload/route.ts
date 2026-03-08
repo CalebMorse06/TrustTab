@@ -45,6 +45,7 @@ export async function POST(request: NextRequest) {
       fileName: file.name,
       mimeType: file.type,
       extractedData,
+      gatewayUrl: getGatewayUrl(cid),
     };
 
     return NextResponse.json({

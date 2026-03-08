@@ -4,12 +4,11 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import {
-  Plus, Plane, X, ArrowRight, Sparkles, Receipt, Zap, Shield,
+  Plus, X, ArrowRight, Sparkles, Shield, Loader2, Zap, Wallet,
 } from "lucide-react";
 import Link from "next/link";
 import { Trip } from "@/lib/types";
@@ -22,6 +21,8 @@ export default function HomePage() {
   const [participants, setParticipants] = useState(["", ""]);
   const [creating, setCreating] = useState(false);
   const [seeding, setSeeding] = useState(false);
+  const [demoLoading, setDemoLoading] = useState(false);
+  const [demoStatus, setDemoStatus] = useState("");
 
   const loadTrips = () => {
     fetch("/api/trips")
@@ -43,6 +44,27 @@ export default function HomePage() {
     } catch (e) {
       console.error(e);
       setSeeding(false);
+    }
+  };
+
+  const launchFullDemo = async () => {
+    setDemoLoading(true);
+    setDemoStatus("Seeding trip data...");
+    try {
+      setDemoStatus("Funding XRPL testnet wallets...");
+      const res = await fetch("/api/demo", { method: "POST" });
+      const data = await res.json();
+      if (data.walletsReady) {
+        setDemoStatus("Wallets funded. Redirecting...");
+        router.push(`/trip/${data.tripId}`);
+      } else {
+        setDemoStatus("Some wallets failed to fund. Redirecting...");
+        router.push(`/trip/${data.tripId}`);
+      }
+    } catch (e) {
+      console.error(e);
+      setDemoStatus("Demo setup failed");
+      setDemoLoading(false);
     }
   };
 
@@ -74,42 +96,37 @@ export default function HomePage() {
   };
 
   return (
-    <div className="space-y-10 py-4">
+    <div className="space-y-16 py-8">
       {/* Hero */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-center py-16"
+        className="py-20"
       >
-        {/* Animated logo coins */}
-        <div className="flex justify-center gap-3 mb-6">
-          {["🧾", "🪙", "✅"].map((emoji, i) => (
-            <motion.div
-              key={i}
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.2 + i * 0.15, type: "spring", stiffness: 200 }}
-              className="text-4xl"
-            >
-              {emoji}
-            </motion.div>
-          ))}
-        </div>
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
+          className="text-xs font-mono text-muted-foreground uppercase tracking-[0.3em] mb-6"
+        >
+          On-chain expense splitting
+        </motion.p>
 
         <motion.h1
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className="text-6xl font-extrabold mb-4 tracking-tight"
+          transition={{ delay: 0.3 }}
+          className="text-7xl font-extrabold mb-6 tracking-tight text-foreground leading-[0.9]"
         >
-          <span className="text-gradient">Trip Treasury</span>
+          Trust
+          <span className="text-[#b45534]">Tab</span>
         </motion.h1>
 
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.7 }}
-          className="text-muted-foreground text-xl max-w-lg mx-auto leading-relaxed"
+          transition={{ delay: 0.5 }}
+          className="text-muted-foreground text-lg max-w-md leading-relaxed"
         >
           Upload a receipt. AI reads it. Everyone gets charged on-chain.
           <br />
@@ -117,44 +134,38 @@ export default function HomePage() {
         </motion.p>
 
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.9 }}
-          className="flex gap-2 justify-center mt-6"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.7 }}
+          className="flex gap-4 mt-8 text-xs font-mono text-muted-foreground"
         >
-          <Badge variant="outline" className="text-[#10b981] border-[#10b981]/30 px-3 py-1">
-            <Zap className="h-3 w-3 mr-1" /> XRPL RLUSD
-          </Badge>
-          <Badge variant="outline" className="text-[#f59e0b] border-[#f59e0b]/30 px-3 py-1">
-            <Shield className="h-3 w-3 mr-1" /> Pinata IPFS
-          </Badge>
-          <Badge variant="outline" className="text-[#3b82f6] border-[#3b82f6]/30 px-3 py-1">
-            <Receipt className="h-3 w-3 mr-1" /> GPT-4o Vision
-          </Badge>
+          <span className="border-l-2 border-[#b45534] pl-2">XRPL</span>
+          <span className="border-l-2 border-[#6b7c5e] pl-2">Pinata IPFS</span>
+          <span className="border-l-2 border-[#c2b59b] pl-2">GPT-4o Vision</span>
         </motion.div>
       </motion.div>
 
-      {/* How it works — visual pipeline */}
+      {/* Pipeline */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 1.1 }}
-        className="grid grid-cols-3 gap-4 max-w-2xl mx-auto"
+        transition={{ delay: 0.9 }}
+        className="grid grid-cols-3 gap-px bg-border max-w-2xl"
       >
         {[
-          { step: "1", icon: "📸", title: "Snap Receipt", desc: "Upload any receipt image", color: "#f59e0b" },
-          { step: "2", icon: "🧠", title: "AI Extracts", desc: "GPT-4o reads items & total", color: "#3b82f6" },
-          { step: "3", icon: "⚡", title: "Settle On-Chain", desc: "RLUSD payments on XRPL", color: "#10b981" },
+          { step: "01", title: "Capture", desc: "Upload any receipt image", color: "#c4893b" },
+          { step: "02", title: "Extract", desc: "GPT-4o reads items and total", color: "#c2b59b" },
+          { step: "03", title: "Settle", desc: "XRP payments on-chain", color: "#6b7c5e" },
         ].map((s, i) => (
           <motion.div
             key={i}
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.2 + i * 0.15 }}
-            className="text-center space-y-2"
+            transition={{ delay: 1.0 + i * 0.1 }}
+            className="bg-card p-5 space-y-3"
           >
-            <div className="text-4xl">{s.icon}</div>
-            <p className="font-bold" style={{ color: s.color }}>{s.title}</p>
+            <span className="text-xs font-mono" style={{ color: s.color }}>{s.step}</span>
+            <p className="font-bold text-lg">{s.title}</p>
             <p className="text-xs text-muted-foreground">{s.desc}</p>
           </motion.div>
         ))}
@@ -164,54 +175,63 @@ export default function HomePage() {
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 1.5 }}
+        transition={{ delay: 1.2 }}
       >
         {!showCreate ? (
-          <div className="flex justify-center gap-3">
-            <Button
-              size="lg"
-              onClick={() => setShowCreate(true)}
-              className="gradient-emerald text-white border-0 text-lg px-8 py-6"
-            >
-              <Plus className="mr-2 h-5 w-5" /> New Trip
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              onClick={seedDemo}
-              disabled={seeding}
-              className="border-[#f59e0b]/30 text-[#f59e0b] hover:bg-[#f59e0b]/10 text-lg px-8 py-6"
-            >
-              <Sparkles className="mr-2 h-5 w-5" />
-              {seeding ? "Loading..." : "Live Demo"}
-            </Button>
-            <Link href="/verify">
+          <div className="space-y-4">
+            <div className="flex gap-3">
+              <Button
+                size="lg"
+                onClick={() => setShowCreate(true)}
+                className="bg-[#b45534] hover:bg-[#9a4529] text-white border-0 text-base px-8 py-6 font-semibold"
+              >
+                <Plus className="mr-2 h-4 w-4" /> New Trip
+              </Button>
               <Button
                 size="lg"
                 variant="outline"
-                className="border-[#3b82f6]/30 text-[#3b82f6] hover:bg-[#3b82f6]/10 text-lg px-8 py-6"
+                onClick={seedDemo}
+                disabled={seeding || demoLoading}
+                className="border-border text-foreground hover:bg-secondary text-base px-8 py-6"
               >
-                <Shield className="mr-2 h-5 w-5" />
-                Verify TX
+                <Sparkles className="mr-2 h-4 w-4" />
+                {seeding ? "Loading..." : "Quick Demo"}
               </Button>
-            </Link>
+              <Link href="/verify">
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="border-border text-muted-foreground hover:bg-secondary text-base px-8 py-6"
+                >
+                  <Shield className="mr-2 h-4 w-4" />
+                  Verify
+                </Button>
+              </Link>
+            </div>
+            <Button
+              size="lg"
+              onClick={launchFullDemo}
+              disabled={demoLoading || seeding}
+              className="bg-[#1c1a19] hover:bg-[#252321] text-[#c4893b] border border-[#c4893b]/30 text-base px-8 py-6 font-semibold w-full max-w-md"
+            >
+              {demoLoading ? (
+                <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{demoStatus}</>
+              ) : (
+                <><Wallet className="mr-2 h-4 w-4" />Launch Full Demo<span className="ml-2 text-xs font-mono text-[#c4893b]/60">seed + fund wallets + ready to settle</span></>
+              )}
+            </Button>
           </div>
         ) : (
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="max-w-lg mx-auto"
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="max-w-lg"
           >
-            <Card className="glass-card">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Plane className="h-5 w-5 text-[#10b981]" />
-                  Create a Trip
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
+            <Card className="surface">
+              <CardContent className="p-6 space-y-5">
+                <p className="text-xs font-mono text-muted-foreground uppercase tracking-widest">New Trip</p>
                 <div>
-                  <Label htmlFor="tripName">Trip Name</Label>
+                  <Label htmlFor="tripName" className="text-xs font-mono text-muted-foreground">Name</Label>
                   <Input
                     id="tripName"
                     placeholder="Austin Spring Break 2026"
@@ -221,7 +241,7 @@ export default function HomePage() {
                   />
                 </div>
                 <div>
-                  <Label>Participants</Label>
+                  <Label className="text-xs font-mono text-muted-foreground">Participants</Label>
                   <div className="space-y-2 mt-1">
                     {participants.map((name, i) => (
                       <div key={i} className="flex gap-2">
@@ -246,18 +266,18 @@ export default function HomePage() {
                     variant="ghost"
                     size="sm"
                     onClick={addParticipant}
-                    className="mt-2 text-[#10b981]"
+                    className="mt-2 text-muted-foreground"
                   >
-                    <Plus className="h-4 w-4 mr-1" /> Add Person
+                    <Plus className="h-4 w-4 mr-1" /> Add
                   </Button>
                 </div>
                 <div className="flex gap-2 pt-2">
                   <Button
                     onClick={createTrip}
                     disabled={creating}
-                    className="gradient-emerald text-white border-0"
+                    className="bg-[#b45534] hover:bg-[#9a4529] text-white border-0"
                   >
-                    {creating ? "Creating..." : "Create Trip"}
+                    {creating ? "Creating..." : "Create"}
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                   <Button variant="ghost" onClick={() => setShowCreate(false)}>
@@ -272,58 +292,51 @@ export default function HomePage() {
 
       {/* Existing Trips */}
       {trips.length > 0 && (
-        <div className="space-y-3 max-w-lg mx-auto">
-          <h2 className="text-xl font-semibold">Your Trips</h2>
+        <div className="space-y-1 max-w-lg">
+          <p className="text-xs font-mono text-muted-foreground uppercase tracking-widest mb-4">Trips</p>
           {trips.map((trip) => (
             <motion.div
               key={trip.id}
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.99 }}
+              whileHover={{ x: 2 }}
             >
-              <Card
-                className="glass-card cursor-pointer hover:border-[#10b981]/30 transition-colors"
+              <div
+                className="flex items-center justify-between py-4 px-4 bg-card border border-border cursor-pointer hover:bg-secondary transition-colors"
                 onClick={() => router.push(`/trip/${trip.id}`)}
               >
-                <CardContent className="flex items-center justify-between py-4">
-                  <div className="flex items-center gap-3">
-                    <div className="flex -space-x-2">
-                      {trip.participants.slice(0, 3).map((p) => (
-                        <div
-                          key={p.id}
-                          className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-sm border-2 border-[#111638]"
-                        >
-                          {p.avatar}
-                        </div>
-                      ))}
-                      {trip.participants.length > 3 && (
-                        <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-[10px] border-2 border-[#111638] text-muted-foreground">
-                          +{trip.participants.length - 3}
-                        </div>
-                      )}
-                    </div>
-                    <div>
-                      <h3 className="font-semibold">{trip.name}</h3>
-                      <p className="text-muted-foreground text-xs">
-                        {trip.participants.length} people &middot;{" "}
-                        {trip.expenses.length} expenses
-                      </p>
-                    </div>
+                <div className="flex items-center gap-3">
+                  <div className="flex -space-x-1">
+                    {trip.participants.slice(0, 3).map((p, i) => (
+                      <div
+                        key={p.id}
+                        className="w-6 h-6 bg-secondary flex items-center justify-center text-[10px] font-mono font-bold border-r border-background"
+                        style={{ borderLeft: `2px solid ${["#b45534","#6b7c5e","#c2b59b"][i % 3]}` }}
+                      >
+                        {p.name.charAt(0)}
+                      </div>
+                    ))}
+                    {trip.participants.length > 3 && (
+                      <div className="w-6 h-6 bg-secondary flex items-center justify-center text-[9px] font-mono text-muted-foreground">
+                        +{trip.participants.length - 3}
+                      </div>
+                    )}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Badge
-                      variant={trip.status === "settled" ? "default" : "outline"}
-                      className={
-                        trip.status === "settled"
-                          ? "bg-[#10b981] text-white"
-                          : "text-[#f59e0b] border-[#f59e0b]/30"
-                      }
-                    >
-                      {trip.status === "settled" ? "Settled" : "Active"}
-                    </Badge>
-                    <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                  <div>
+                    <p className="font-semibold text-sm">{trip.name}</p>
+                    <p className="text-muted-foreground text-[11px] font-mono">
+                      {trip.participants.length} people / {trip.expenses.length} expenses
+                    </p>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span
+                    className="text-[10px] font-mono uppercase tracking-wider"
+                    style={{ color: trip.status === "settled" ? "#6b7c5e" : "#c4893b" }}
+                  >
+                    {trip.status}
+                  </span>
+                  <ArrowRight className="h-3 w-3 text-muted-foreground" />
+                </div>
+              </div>
             </motion.div>
           ))}
         </div>

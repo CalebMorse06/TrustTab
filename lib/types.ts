@@ -31,6 +31,7 @@ export interface ReceiptArtifact {
   fileName: string;
   mimeType: string;
   extractedData: ExtractedReceipt | null;
+  gatewayUrl?: string;
 }
 
 export interface Expense {
@@ -46,6 +47,15 @@ export interface Expense {
   createdAt: string;
 }
 
+export interface LiveObligation extends Obligation {
+  fromName?: string;
+  toName?: string;
+  fromAddress?: string;
+  toAddress?: string;
+  explorerUrl?: string;
+  memo?: string;
+}
+
 export interface Trip {
   id: string;
   name: string;
@@ -53,6 +63,15 @@ export interface Trip {
   expenses: Expense[];
   status: "active" | "settled";
   createdAt: string;
+  approvals?: Record<string, { approved: boolean; timestamp: string }>;
+  settlementStatus?: {
+    phase: "idle" | "processing" | "complete";
+    startedAt?: string;
+    completedAt?: string;
+    obligations?: LiveObligation[];
+    auditCid?: string;
+    participantCids?: Record<string, string>;
+  };
 }
 
 export interface Obligation {

@@ -2,8 +2,7 @@
 
 import { Expense, Participant } from "@/lib/types";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Receipt, ExternalLink } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 
 export function ReceiptCard({
   expense,
@@ -16,95 +15,78 @@ export function ReceiptCard({
   const extracted = expense.receipt?.extractedData;
 
   return (
-    <Card className="glass-card">
+    <Card className="surface">
       <CardContent className="py-4 space-y-3">
         <div className="flex items-start justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-[#10b981]/10 flex items-center justify-center">
-              <Receipt className="h-5 w-5 text-[#10b981]" />
-            </div>
-            <div>
-              <h3 className="font-semibold">{expense.description}</h3>
-              <p className="text-sm text-muted-foreground">
-                Paid by {payer?.name || "Unknown"}
-              </p>
-            </div>
+          <div>
+            <h3 className="font-semibold">{expense.description}</h3>
+            <p className="text-xs text-muted-foreground">
+              Paid by {payer?.name || "Unknown"}
+            </p>
           </div>
           <div className="text-right">
-            <p className="text-lg font-bold text-[#10b981]">
+            <p className="text-lg font-mono font-bold text-[#c2b59b]">
               ${expense.amount.toFixed(2)}
             </p>
-            <Badge
-              variant="outline"
-              className={
-                expense.status === "settled"
-                  ? "text-[#10b981] border-[#10b981]/30"
-                  : "text-[#f59e0b] border-[#f59e0b]/30"
-              }
+            <span
+              className="text-[10px] font-mono uppercase tracking-wider"
+              style={{ color: expense.status === "settled" ? "#6b7c5e" : "#c4893b" }}
             >
               {expense.status}
-            </Badge>
+            </span>
           </div>
         </div>
 
-        {/* Extracted receipt data */}
         {extracted && (
-          <div className="bg-background/50 rounded-lg p-3 text-sm space-y-1">
-            <div className="flex justify-between text-muted-foreground">
+          <div className="border border-border p-3 text-sm space-y-1">
+            <div className="flex justify-between text-muted-foreground text-xs">
               <span>{extracted.vendor}</span>
-              <span>{extracted.date}</span>
+              <span className="font-mono">{extracted.date}</span>
             </div>
             {extracted.lineItems.slice(0, 4).map((item, i) => (
-              <div key={i} className="flex justify-between">
+              <div key={i} className="flex justify-between text-xs">
                 <span>
                   {item.name} {item.quantity > 1 ? `x${item.quantity}` : ""}
                 </span>
-                <span>${item.price.toFixed(2)}</span>
+                <span className="font-mono">${item.price.toFixed(2)}</span>
               </div>
             ))}
             {extracted.lineItems.length > 4 && (
-              <p className="text-muted-foreground">
-                +{extracted.lineItems.length - 4} more items
+              <p className="text-muted-foreground text-xs">
+                +{extracted.lineItems.length - 4} more
               </p>
             )}
-            <div className="border-t border-border pt-1 mt-1 flex justify-between font-semibold">
+            <div className="border-t border-border pt-1 mt-1 flex justify-between font-semibold text-xs">
               <span>Total</span>
-              <span>${extracted.total.toFixed(2)}</span>
+              <span className="font-mono">${extracted.total.toFixed(2)}</span>
             </div>
           </div>
         )}
 
-        {/* Pinata CID */}
         {expense.receipt?.pinataCid && (
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <span className="font-mono truncate">
-              CID: {expense.receipt.pinataCid}
-            </span>
+          <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-mono">
+            <span className="truncate">CID: {expense.receipt.pinataCid}</span>
             <a
               href={`https://${process.env.NEXT_PUBLIC_PINATA_GATEWAY || "gateway.pinata.cloud"}/ipfs/${expense.receipt.pinataCid}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[#f59e0b] hover:underline flex items-center"
+              className="text-[#b45534] hover:opacity-80"
             >
               <ExternalLink className="h-3 w-3" />
             </a>
           </div>
         )}
 
-        {/* Splits */}
         <div className="flex gap-1 flex-wrap">
           {expense.splits.map((split) => {
-            const person = participants.find(
-              (p) => p.id === split.participantId
-            );
+            const person = participants.find((p) => p.id === split.participantId);
             return (
-              <Badge
+              <span
                 key={split.participantId}
-                variant="outline"
-                className="text-xs"
+                className="text-[10px] font-mono border border-border px-2 py-0.5 text-muted-foreground"
               >
                 {person?.name}: ${split.amount.toFixed(2)}
-              </Badge>
+              </span>
             );
           })}
         </div>

@@ -22,12 +22,10 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const avatars = ["🧑", "👩", "👨", "🧑‍🦱", "👩‍🦰", "👨‍🦳", "🧑‍🦲", "👩‍🦱"];
-
-  const participants: Participant[] = participantNames.map((pName, i) => ({
+  const participants: Participant[] = participantNames.map((pName) => ({
     id: nanoid(8),
     name: pName,
-    avatar: avatars[i % avatars.length],
+    avatar: pName.trim().charAt(0).toUpperCase(),
     wallet: { address: "", seed: "" },
   }));
 

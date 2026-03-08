@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Globe, Wifi } from "lucide-react";
 
 export function NetworkStatus() {
   const [connected, setConnected] = useState(false);
@@ -27,22 +26,17 @@ export function NetworkStatus() {
   }, []);
 
   return (
-    <div className="flex items-center gap-3 text-xs font-mono">
+    <div className="flex items-center gap-3 text-[10px] font-mono text-muted-foreground">
       <div className="flex items-center gap-1.5">
         <motion.div
-          className={`w-2 h-2 rounded-full ${connected ? "bg-[#10b981]" : "bg-red-400"}`}
-          animate={connected ? { opacity: [1, 0.4, 1] } : {}}
+          className={`w-1.5 h-1.5 ${connected ? "bg-[#6b7c5e]" : "bg-[#b45534]"}`}
+          animate={connected ? { opacity: [1, 0.3, 1] } : {}}
           transition={{ repeat: Infinity, duration: 2 }}
         />
-        <span className="text-muted-foreground">
-          {connected ? "XRPL Testnet" : "Disconnected"}
-        </span>
+        <span>{connected ? "XRPL TESTNET" : "DISCONNECTED"}</span>
       </div>
       {ledgerIndex && (
-        <div className="flex items-center gap-1 text-muted-foreground/60">
-          <Globe className="h-3 w-3" />
-          <span>Ledger #{ledgerIndex.toLocaleString()}</span>
-        </div>
+        <span className="text-muted-foreground/50">#{ledgerIndex.toLocaleString()}</span>
       )}
     </div>
   );

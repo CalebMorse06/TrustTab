@@ -2,7 +2,7 @@
 
 import { Trip } from "@/lib/types";
 import { calculateBalances, minimizeDebts } from "@/lib/splits";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { ArrowRight } from "lucide-react";
 
 export function BalanceSummary({ trip }: { trip: Trip }) {
@@ -15,12 +15,10 @@ export function BalanceSummary({ trip }: { trip: Trip }) {
   const maxAbs = Math.max(...balances.map((b) => Math.abs(b.amount)), 1);
 
   return (
-    <Card className="glass-card">
-      <CardHeader>
-        <CardTitle className="text-lg">Balances</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Balance bars */}
+    <Card className="surface">
+      <CardContent className="p-5 space-y-4">
+        <p className="text-xs font-mono text-muted-foreground uppercase tracking-widest">Balances</p>
+
         <div className="space-y-2">
           {balances.map((b) => {
             const name = getName(b.participantId);
@@ -29,23 +27,22 @@ export function BalanceSummary({ trip }: { trip: Trip }) {
 
             return (
               <div key={b.participantId} className="space-y-1">
-                <div className="flex justify-between text-sm">
+                <div className="flex justify-between text-xs">
                   <span>{name}</span>
                   <span
-                    className={
-                      isPositive ? "text-[#10b981]" : b.amount < 0 ? "text-[#ef4444]" : "text-muted-foreground"
-                    }
+                    className="font-mono"
+                    style={{ color: isPositive ? "#6b7c5e" : b.amount < 0 ? "#b45534" : "#8a7e72" }}
                   >
-                    {isPositive ? "+" : ""}
-                    ${b.amount.toFixed(2)}
+                    {isPositive ? "+" : ""}${b.amount.toFixed(2)}
                   </span>
                 </div>
-                <div className="h-2 bg-secondary rounded-full overflow-hidden">
+                <div className="h-px bg-border overflow-hidden">
                   <div
-                    className={`h-full rounded-full transition-all ${
-                      isPositive ? "bg-[#10b981]" : "bg-[#ef4444]"
-                    }`}
-                    style={{ width: `${Math.max(pct, 2)}%` }}
+                    className="h-full transition-all"
+                    style={{
+                      width: `${Math.max(pct, 2)}%`,
+                      backgroundColor: isPositive ? "#6b7c5e" : "#b45534",
+                    }}
                   />
                 </div>
               </div>
@@ -53,22 +50,21 @@ export function BalanceSummary({ trip }: { trip: Trip }) {
           })}
         </div>
 
-        {/* Obligations */}
         {obligations.length > 0 && (
           <div className="border-t border-border pt-4">
-            <h4 className="text-sm font-semibold mb-2 text-muted-foreground">
+            <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest mb-2">
               Optimized Transfers ({obligations.length})
-            </h4>
-            <div className="space-y-2">
+            </p>
+            <div className="space-y-1">
               {obligations.map((o, i) => (
                 <div
                   key={i}
-                  className="flex items-center gap-2 text-sm bg-background/50 rounded-lg px-3 py-2"
+                  className="flex items-center gap-2 text-xs border border-border px-3 py-2"
                 >
                   <span className="font-medium">{getName(o.from)}</span>
-                  <ArrowRight className="h-4 w-4 text-[#f59e0b]" />
+                  <ArrowRight className="h-3 w-3 text-muted-foreground" />
                   <span className="font-medium">{getName(o.to)}</span>
-                  <span className="ml-auto text-[#10b981] font-bold">
+                  <span className="ml-auto font-mono font-bold text-[#c2b59b]">
                     ${o.amount.toFixed(2)}
                   </span>
                 </div>
